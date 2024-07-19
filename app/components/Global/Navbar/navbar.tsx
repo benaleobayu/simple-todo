@@ -1,39 +1,46 @@
 'use client'
 import * as React from 'react';
-import {getUserFromLocalStorage, saveRefreshTokenToLocalStorage} from "@/utils/jwt";
+import {useEffect} from 'react';
+import {getUserFromLocalStorage} from "@/utils/jwt";
 import __NavProfile_ from "@/app/components/Global/Navbar/nav-profile";
-import {useEffect} from "react";
 import axios from "axios";
-import {useAuth} from "@/utils/auth/AuthProvider";
+import {useRouter} from "next/navigation";
+import {toast} from "sonner"
 
 
-interface User{
-    sub:{
+interface User {
+    sub: {
         name: string
     }
 }
+
 export default function __Navbar_() {
     const [user, setUser] = React.useState<User | null>(null)
-    const host = process.env.NEXT_PUBLIC_HOST
 
-    useEffect(()=> {
-        const storedUser = getUserFromLocalStorage()
-        setUser(storedUser)
-    },[])
+    const router = useRouter()
 
     useEffect(() => {
+        const storedUser = getUserFromLocalStorage()
+        setUser(storedUser)
+    }, [])
+
+    useEffect(() => {
+        const host = process.env.NEXT_PUBLIC_API_HOST
         const refreshToken = async () => {
             try {
-                const response = await axios.post('http://127.0.0.1:5000/api/refresh', {}, {
+                const res = await axios.post(`${host}/auth/refresh`, {}, {
                     withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('refresh_token')}`
                     }
                 });
-                // console.log('New access token:', response.data.access_token);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error refreshing access token:', error);
+                if (error.response.status === 422) {
+                    router.push('/auth/login')
+                    toast.error("Session expired!")
+                }
             }
         };
 

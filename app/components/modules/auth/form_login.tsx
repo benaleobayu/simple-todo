@@ -1,6 +1,5 @@
 "use client"
 
-import {useState} from "react"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
 import {z} from "zod"
@@ -9,9 +8,9 @@ import axios from "axios";
 import {Button} from "@/components/ui/button"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
-import {toast} from "@/components/ui/use-toast"
 import {useRouter} from "next/navigation";
 import {saveRefreshTokenToLocalStorage, saveTokenToLocalStorage} from "@/utils/jwt";
+import {toast} from "sonner";
 
 const FormSchema = z.object({
     username: z.string().min(2, {
@@ -23,8 +22,8 @@ const FormSchema = z.object({
 })
 
 export default function __FormLogin() {
-    const [token, setToken] = useState('')
     const Router = useRouter()
+
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -33,72 +32,70 @@ export default function __FormLogin() {
         },
     })
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
-        console.log(data)
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        try {
+            const host = process.env.NEXT_PUBLIC_API_HOST
 
-        const host = process.env.NEXT_PUBLIC_HOST
-
-        axios.post(`${host}/api/login`, data , {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-            .then((res) => {
-                console.log(res.data)
-                toast({
-                    title: "Success",
-                    description: "Login Success",
-                })
-                const token = res.data
-                // localStorage.setItem("token", res.data.access_token)
-                saveTokenToLocalStorage(token.access_token)
-                saveRefreshTokenToLocalStorage(token.refresh_token)
-
-                Router.push("/cms/todos")
-
+            const res = await axios.post(`${host}/auth/login`, data, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
             })
-            .catch((err) => {
-                console.log(err)
-                toast({
-                    title: "Error",
-                    description: "Login Failed",
-                })
-            })
+            const token = res.data
 
+            const userName = localStorage.getItem('user'); // Async retrieval of user.name
+
+            saveTokenToLocalStorage(token.access_token)
+            saveRefreshTokenToLocalStorage(token.refresh_token)
+
+            if (userName) {
+                toast.success(`Welcome back ${userName['sub']['name']}!`);
+            } else {
+                toast.success(`Welcome back!`);
+            }
+
+            Router.push("/cms/todos")
+        } catch (error: any) {
+            console.log(error)
+
+            toast.error(error?.response?.data.error.message || "Something wrongs")
+        }
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
-                <FormField
-                    control={form.control}
-                    name="username"
-                    render={({field}) => (
-                        <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                                <Input placeholder="please enter your username" {...field} />
-                            </FormControl>
-                            <FormMessage/>
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({field}) => (
-                        <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="please enter your password" {...field} />
-                            </FormControl>
-                            <FormMessage/>
-                        </FormItem>
-                    )}
-                />
+        <>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({field}) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="please enter your username" {...field} />
+                                </FormControl>
+                                <FormMessage/>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({field}) => (
+                            <FormItem>
+                                <FormLabel>Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" placeholder="please enter your password" {...field} />
+                                </FormControl>
+                                <FormMessage/>
+                            </FormItem>
+                        )}
+                    />
 
-                <Button type="submit">Submit</Button>
-            </form>
-        </Form>
+                    <Button type="submit">Submit</Button>
+                </form>
+            </Form>
+        </>
     )
 }

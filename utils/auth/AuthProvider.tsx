@@ -12,9 +12,10 @@ export const AuthProvider = ({ children }: any) => {
     const [auth, setAuth] = useState<AuthState>({ accessToken: null, refreshToken: null });
 
     useEffect(() => {
+        const host = process.env.NEXT_PUBLIC_API_HOST;
         const refreshToken = async () => {
             try {
-                const response = await axios.post('http://127.0.0.1:5000/api/refresh', {}, {
+                const response = await axios.post(`${host}/auth/refresh`, {}, {
                     withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json',

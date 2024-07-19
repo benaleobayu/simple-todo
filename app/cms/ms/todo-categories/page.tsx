@@ -3,18 +3,10 @@ import * as React from 'react';
 import {useEffect} from 'react';
 import axios from "axios";
 
-import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import {Button} from "@/components/ui/button";
-import {Edit_TodoCategory} from "@/app/cms/ms/todo-categories/Edit-Category";
+import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
+import {CreateUpdateTodoCategory} from "@/app/cms/ms/todo-categories/Modal_Form";
+import {TodoCategoryDelete} from "@/app/cms/ms/todo-categories/Modal_Delete";
+import useTodoCategories from "@/hooks/useTodoCategories";
 
 type Categories = {
     id: number;
@@ -24,31 +16,18 @@ type Categories = {
     updated_at: string;
 };
 export default function Page() {
-    const [listData, setListData] = React.useState<Categories[]>([])
-    const host = process.env.NEXT_PUBLIC_HOST
-
-    useEffect(() => {
-
-        axios.get(`${host}/api/todos/categories`, {
-            headers: {
-                Authorization: "Bearer " + localStorage.getItem("token"),
-            }
-        })
-            .then((res) => {
-                setListData(res.data.data)
-                // console.log(res.data.data)
-
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-    }, [])
-
-    console.log(host)
+    const {listData, fetchData} = useTodoCategories()
 
     return (
         <>
             <div className="mx-auto w-[90%]">
+                <CreateUpdateTodoCategory
+                    isCreate={true}
+                    onActionCompleted={fetchData}
+                    className="mb-4 bg-blue-600 text-white"
+                >
+                    Add Category
+                </CreateUpdateTodoCategory>
                 <Table>
                     <TableCaption>A list of your todo categories.</TableCaption>
                     <TableHeader>
@@ -70,8 +49,9 @@ export default function Page() {
                                 <TableCell>{item.created_at}</TableCell>
                                 <TableCell>{item.updated_at}</TableCell>
                                 <TableCell className="flex gap-2">
-                                    <Edit_TodoCategory id={item.id}>Edit</Edit_TodoCategory>
-                                    <Button variant="destructive">Delete</Button>
+                                    <CreateUpdateTodoCategory id={item.id} onActionCompleted={fetchData} isEdit={true}>Edit
+                                    </CreateUpdateTodoCategory>
+                                    <TodoCategoryDelete id={item.id} onActionCompleted={fetchData}/>
                                 </TableCell>
                             </TableRow>
                         ))}

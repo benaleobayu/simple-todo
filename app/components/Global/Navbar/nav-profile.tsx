@@ -11,12 +11,13 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 
 export default function __NavProfile_() {
     const nav = useRouter()
-    const host = process.env.NEXT_PUBLIC_HOST
+    const host = process.env.NEXT_PUBLIC_API_HOST
     const handleLogout = () => {
-        axios.post(`${host}/api/logout`, {
+        axios.post(`${host}/auth/logout`, {
         }, {
             headers: {
                 "Content-Type": "application/json",
@@ -26,6 +27,7 @@ export default function __NavProfile_() {
             .then(() => {
                 localStorage.removeItem('token')
                 localStorage.removeItem('user')
+                localStorage.removeItem('refresh_token')
             })
             .catch((err) => {
                 console.log(err)
@@ -46,9 +48,9 @@ export default function __NavProfile_() {
                 <DropdownMenuContent>
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator/>
-                    <DropdownMenuItem>Profile</DropdownMenuItem>
-                    <DropdownMenuItem>Billing</DropdownMenuItem>
-                    <DropdownMenuItem>Team</DropdownMenuItem>
+                    <Link href={'/cms/p/profile'}>
+                        <DropdownMenuItem>Profile</DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

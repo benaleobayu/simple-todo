@@ -9,17 +9,9 @@ import {Button} from "@/components/ui/button";
 import axios from "axios";
 import {toast} from "sonner";
 import { FaCalendarCheck, FaUndo } from "react-icons/fa";
-import {useState} from "react";
 
-type Categories = {
-    id: number;
-    name: string;
-    description: string;
-    created_at: string;
-    updated_at: string;
-};
 export default function Page() {
-    const {listData, fetchData, isLoading} = useTodos()
+    const {listData, fetchData} = useTodos()
     const host = process.env.NEXT_PUBLIC_API_HOST;
 
     const handleStatus = async (id: number, currentStatus: string) => {
@@ -62,8 +54,8 @@ export default function Page() {
                         <TableRow className="bg-slate-400">
                             <TableHead className="w-[50px]">ID</TableHead>
                             <TableHead>Name</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>Username</TableHead>
+                            <TableHead>Email</TableHead>
                             <TableHead>Category</TableHead>
                             <TableHead>Created_at</TableHead>
                             <TableHead>Updated_at</TableHead>
@@ -71,36 +63,29 @@ export default function Page() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={8} className="text-center">Loading...</TableCell>
+                        {listData.length > 0 && listData.map((item) => (
+                            <TableRow key={item.id} className={`${item.status === "1" ? "bg-green-200" : ""}`}>
+                                <TableCell className="font-medium">{item.id}</TableCell>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{item.description}</TableCell>
+                                <TableCell>{item.status === "1" ? "Completed" : "Progress"}</TableCell>
+                                <TableCell>{item.category.name}</TableCell>
+                                <TableCell>{item.created_at}</TableCell>
+                                <TableCell>{item.updated_at}</TableCell>
+                                <TableCell className="flex gap-2">
+                                    <CreateUpdateTodo id={item.id} onActionCompleted={fetchData} isEdit={true}>
+                                        Edit
+                                    </CreateUpdateTodo>
+                                    <Button
+                                        onClick={() => handleStatus(item.id, item.status)}
+                                        className={`${item.status === '1' ? 'bg-red-500' : 'bg-green-500'}`}
+                                    >
+                                        {item.status === '1' ? <FaUndo/> : <FaCalendarCheck />}
+                                    </Button>
+                                    <DeleteTodo id={item.id} onActionCompleted={fetchData}/>
+                                </TableCell>
                             </TableRow>
-                        ) : (
-                            listData && listData.map((item) => (
-                                <TableRow key={item.id} className={`${item.status === "1" ? "bg-green-200" : ""}`}>
-                                    <TableCell className="font-medium">{item.id}</TableCell>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell>{item.description}</TableCell>
-                                    <TableCell>{item.status === "1" ? "Completed" : "Progress"}</TableCell>
-                                    <TableCell>{item.category.name}</TableCell>
-                                    <TableCell>{item.created_at}</TableCell>
-                                    <TableCell>{item.updated_at}</TableCell>
-                                    <TableCell className="flex gap-2">
-                                        <CreateUpdateTodo id={item.id} onActionCompleted={fetchData} isEdit={true}>
-                                            Edit
-                                        </CreateUpdateTodo>
-                                        <Button
-                                            onClick={() => handleStatus(item.id, item.status)}
-                                            className={`${item.status === '1' ? 'bg-red-500' : 'bg-green-500'}`}
-                                        >
-                                            {item.status === '1' ? <FaUndo/> : <FaCalendarCheck />}
-                                        </Button>
-                                        <DeleteTodo id={item.id} onActionCompleted={fetchData}/>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )
-                        }
+                        ))}
                     </TableBody>
                 </Table>
 

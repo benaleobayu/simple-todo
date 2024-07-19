@@ -2,19 +2,18 @@
 import * as React from 'react';
 import {
     Command,
-    CommandDialog,
     CommandEmpty,
     CommandGroup,
     CommandInput,
     CommandItem,
     CommandList,
     CommandSeparator,
-    CommandShortcut,
 } from "@/components/ui/command"
 import Link from "next/link";
 
 type listMenu = {
     title: string,
+    type?: 'group' | 'item',
     icon?: string,
     href: string,
     subMenu?: listMenu[]
@@ -23,21 +22,24 @@ type listMenu = {
 const listMenu: listMenu[] = [
     {
         title: 'Home',
+        type: 'item',
         icon: 'dashboard',
         href: '/home'
     },
     {
         title: 'Todos',
+        type: 'item',
         icon: 'todo',
-        href: '/todos'
+        href: '/cms/todos'
     },
     {
         title: 'Users',
         icon: 'users',
-        href: '/users'
+        href: '/cms/a/users'
     },
     {
         title: 'Masterdata',
+        type: 'group',
         icon: 'masterdata',
         href: '/masterdata',
         subMenu: [
@@ -63,18 +65,26 @@ export default function __Sidebar_() {
             <div className="mt-4 px-4">
 
                 <Command>
-                    <CommandInput placeholder="Type a command or search..." />
+                    <CommandInput placeholder="Type a command or search..."/>
                     <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
-                        <CommandSeparator />
+                        <CommandSeparator/>
                         {listMenu && listMenu.map((item, index) => (
-                            <CommandGroup heading={item.title} key={index}>
-                                {item.subMenu && item.subMenu.map((subItem, subIndex) => (
-                                    <Link href={subItem.href} key={subIndex}>
-                                        <CommandItem>{subItem.title}</CommandItem>
+                            item.type === 'group' ? (
+                                    <CommandGroup heading={item.title} key={index}>
+                                        {item.subMenu && item.subMenu.map((subItem, subIndex) => (
+                                            <Link href={subItem.href} key={subIndex}>
+                                                <CommandItem>{subItem.title}</CommandItem>
+                                            </Link>
+                                        ))}
+                                    </CommandGroup>
+                                )
+                                :
+                                (
+                                    <Link href={item.href} key={index}>
+                                        <CommandItem>{item.title}</CommandItem>
                                     </Link>
-                                ))}
-                            </CommandGroup>
+                                )
                         ))
                         }
                     </CommandList>
